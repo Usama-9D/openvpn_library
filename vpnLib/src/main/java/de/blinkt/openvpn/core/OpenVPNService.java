@@ -6,6 +6,7 @@
 package de.blinkt.openvpn.core;
 
 import android.Manifest.permission;
+import de.blinkt.openvpn.core.Preferences;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -18,6 +19,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
@@ -507,6 +509,16 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             return getManagement().stopVPN(replaceConnection);
         else
             return false;
+    }
+    public void storeValueInSharedPreferences(Context mContext, String key, String value) {
+        SharedPreferences prefs = Preferences.getDefaultSharedPreferences(mContext);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+    public String getRemainingTimeFromSharedPreferences(Context mContext, String key, String defaultValue) {
+        SharedPreferences prefs = Preferences.getDefaultSharedPreferences(mContext);
+        return prefs.getString(key, defaultValue);
     }
 
     @Override
@@ -1285,7 +1297,21 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             @SuppressLint("SimpleDateFormat") DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             duration = dateFormat.format(connectedOn.getTime());
             lastPacketReceive = checkPacketReceive(lastPacketReceive);
-            sendMessage(duration, String.valueOf(lastPacketReceive), byteIn, byteOut);
+
+            String remainingTime= getRemainingTimeFromSharedPreferences(getApplicationContext(), "flutter.remaining_duration", "01:00:00");
+            boolean isRemainingTime = Preferences.isTimeLessThan(duration,remainingTime);
+            if(!isRemainingTime){
+                // Remaining Time Ends
+                storeValueInSharedPreferences(getApplicationContext(), "flutter.remaining_duration", "00:00:00");
+                Log.d("OpenVPN", "Remaining Time Ended");
+                // Stop the VPN Connection
+                //...
+            }else{
+                Log.d("OpenVPN", "Remaining Time Not Ended");
+                sendMessage(duration, String.valueOf(lastPacketReceive), byteIn, byteOut);
+            }
+
+
         }
 
     }
