@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-group = 'com.github.nizwar'
+group = 'com.github.Usama-9D'
 
 android {
     compileSdkVersion 33

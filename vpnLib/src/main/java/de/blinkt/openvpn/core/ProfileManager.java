@@ -179,18 +179,15 @@ public class ProfileManager {
             try {
                  vpnfile = new ObjectInputStream(context.openFileInput(vpnentry + ".vp"));
                 VpnProfile vp = ((VpnProfile) vpnfile.readObject());
-
                 // Sanity check
                 if (vp == null || vp.mName == null || vp.getUUID() == null)
                     continue;
-
                 vp.upgradeProfile();
                 if (vpnentry.equals(TEMPORARY_PROFILE_FILENAME)) {
                     tmpprofile = vp;
                 } else {
                     profiles.put(vp.getUUID().toString(), vp);
                 }
-
 
             } catch (IOException | ClassNotFoundException e) {
                 if (!vpnentry.equals(TEMPORARY_PROFILE_FILENAME))
@@ -215,7 +212,6 @@ public class ProfileManager {
         context.deleteFile(vpnentry + ".vp");
         if (mLastConnectedVpn == profile)
             mLastConnectedVpn = null;
-
     }
 
     public static VpnProfile get(Context context, String profileUUID) {
